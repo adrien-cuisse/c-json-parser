@@ -135,12 +135,12 @@ static JsonToken * new(char const * const string)
             return NULL;
         }
 
-        this->rawString = malloc(strlen(string + 1));
+        this->rawString = calloc(strlen(string + 1), 1);
         if (this->rawString == NULL) {
             _JsonToken->delete(& this);
             return NULL;    
         }
-        strcpy(this->rawString, string);
+        strncpy(this->rawString, string, strlen(string));
         
         this->value = __parseValue(this->type, this->rawString);
     }
