@@ -98,3 +98,30 @@ Test(Json, parses_correct_tokens) {
         tokens = _LinkedList->nextElement(tokens);
     }
 }
+
+
+#error Checkpoint
+Test(Json, rejects_invalid_syntax, .timeout=1) {
+    // given some jsons with invalid syntax
+    char * jsonStrings[] = {
+        "{ \"error\" \"missing colon\" }",
+        "{ \"error\" : \"missing comma\" \"error2\" : \"foo\" }",
+        "\"error\": \"missing opening curly brace\"}",
+        "{ \"error\" : \"missing closing curly braces\""
+    };
+    Json * jsons[4];
+    unsigned int jsonIndex;
+
+    // when creating objects from them
+    for (jsonIndex = 0; jsonIndex < 4; jsonIndex++) {
+        jsons[jsonIndex] = _Json->new(jsonStrings[jsonIndex]);
+    }
+
+    // they no valid instance should be returned
+    for (jsonIndex = 0; jsonIndex < 4; jsonIndex++) {
+        cr_assert_null(
+            jsons[jsonIndex],
+            "Didn't expect to get a valid instance from json-string '%s'", jsonStrings[jsonIndex]
+        );
+    }
+}
