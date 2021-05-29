@@ -9,7 +9,7 @@
 
 static void * Class_allocate(char const * className, unsigned int blockSize)
 {
-    void * this = malloc(blockSize);
+    void * this = calloc(1, blockSize);
 
     if (this == NULL) {
         if (className == NULL) {
