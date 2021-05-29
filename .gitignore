@@ -1,0 +1,12 @@
+
+#editor settings
+.vscode/
+
+# keep directory structure
+!**/.gitkeep
+
+# object files
+**/*.o
+
+# test binaries
+tests/bin/*Test
