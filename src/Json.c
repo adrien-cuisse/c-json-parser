@@ -51,9 +51,13 @@ static unsigned int __trimmedStringLength(char const * const jsonString);
 static char * __trimString(char const * const jsonString);
 
 
-static JsonToken * __createToken(char * tokenStart, char * tokenEnd);
-
-
+/**
+ * Parses the tokens from the trimmed string
+ * 
+ * @param this - the json object with a valid trimmed string to extract tokens from
+ * 
+ * @return - the list of parsed tokens
+ */
 static LinkedList * __extractTokens(Json const * this);
 
 
@@ -66,7 +70,7 @@ static Json * new(char const * const jsonString)
     this = Class->new("Json", sizeof(* this));
 
     if (this != NULL) {
-        this->rawString = malloc(strlen(jsonString) + 1);
+        this->rawString = calloc(strlen(jsonString) + 1, 1);
         if (this->rawString == NULL) {
             _Json->delete(& this);
             return NULL;
@@ -138,7 +142,9 @@ static unsigned int __trimmedStringLength(char const * const string)
         }
 
         if (string[stringIndex] == '"') {
-            if ((stringIndex > 0) && (string[stringIndex - 1] != '\\')) {
+            if (stringIndex == 0) {
+                inQuotes = ! inQuotes;
+            } else if (string[stringIndex - 1] != '\\') {
                 inQuotes = ! inQuotes;
             }
         }
@@ -159,7 +165,7 @@ static char * __trimString(char const * const string)
     unsigned int trimmedIndex;
     
     length = __trimmedStringLength(string);
-    trimmedString = malloc(length + 1);
+    trimmedString = calloc(length + 1, 1);
     if (trimmedString == NULL) {
         return NULL;
     }
@@ -172,7 +178,9 @@ static char * __trimString(char const * const string)
         }
 
         if (string[stringIndex] == '"') {
-            if ((stringIndex > 0) && (string[stringIndex - 1] != '\\')) {
+            if (stringIndex == 0) {
+                inQuotes = ! inQuotes;
+            } else if (string[stringIndex - 1] != '\\') {
                 inQuotes = ! inQuotes;
             }
         }
@@ -187,27 +195,30 @@ static char * __trimString(char const * const string)
 
 static LinkedList * __extractTokens(Json const * this)
 {
-    char * tokenStart;
-    char * tokenEnd;
+    char * tokenStart = this->trimmedString;
+    char * tokenEnd = tokenStart + 1;
     char * tokenBuffer;
     LinkedList * tokens = NULL;
     JsonToken * currentToken;
 
-    for (tokenStart = this->trimmedString; * tokenStart != '\0'; tokenStart++) {
-        for (tokenEnd = tokenStart + 1; * tokenStart != '\0'; tokenEnd++) {
-            
-            tokenBuffer = malloc(tokenEnd - tokenStart + 1);
-            strncpy(tokenBuffer, tokenStart, tokenEnd - tokenStart);
-            tokenBuffer[tokenEnd - tokenStart] = '\0';
-
-            currentToken = _JsonToken->new(tokenBuffer);
-            if (currentToken != NULL) {
-                _LinkedList->append(& tokens, _LinkedList->new(currentToken));
-                tokenStart = tokenEnd;
-            }
-
-            free(tokenBuffer);
+    while (* (tokenEnd - 1) != '\0') {
+        tokenBuffer = calloc(tokenEnd - tokenStart + 1, 1);
+        if (tokenBuffer == NULL) {
+            return NULL;
         }
+        strncpy(tokenBuffer, tokenStart, tokenEnd - tokenStart);
+        tokenBuffer[tokenEnd - tokenStart] = '\0';
+
+
+        currentToken = _JsonToken->new(tokenBuffer);
+        if (currentToken != NULL) {
+            _LinkedList->append(& tokens, _LinkedList->new(currentToken));
+            tokenStart = tokenEnd;
+        }
+
+        tokenEnd++;
+
+        free(tokenBuffer);
     }
 
     return tokens;
